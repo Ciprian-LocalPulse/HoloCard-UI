@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SOVEREIGN CARD · Enterprise Holographic Identity System</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><polygon points=%2250,5 95,25 95,75 50,95 5,75 5,25%22 fill=%22none%22 stroke=%22%2300ff41%22 stroke-width=%228%22/><path d=%22M35 40 L50 30 L65 40 L65 60 L50 70 L35 60 Z%22 fill=%22%2300e5ff%22><animate attributeName=%22opacity%22 values=%221;0.5;1%22 dur=%223s%22 repeatCount=%22indefinite%22/></path></svg>">
+
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23020c06%22/><polygon points=%2250,10 90,30 90,70 50,90 10,70 10,30%22 fill=%22none%22 stroke=%22%2300ff41%22 stroke-width=%228%22/><path d=%22M40 45 L50 38 L60 45 L60 55 L50 62 L40 55 Z%22 fill=%22%2300e5ff%22/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#000a05;--surface:#030f07;--card:#050f08;
+  --m:#00ff41;--m2:rgba(0,255,65,.15);--m3:rgba(0,255,65,.05);
+  --c:#00e5ff;--c2:rgba(0,229,255,.15);
+  --g:#ffd700;--g2:rgba(255,215,0,.12);
+  --r:#ff003c;
+  --text:#b8ffce;--muted:#2a6640;--white:#ffffff;
+}
+*{box-sizing:border-box;margin:0;padding:0;cursor:none!important;}
+
+/* CURSOR */
+#cur{position:fixed;width:10px;height:10px;background:var(--m);border-radius:50%;
+  pointer-events:none;z-index:9999;transform:translate(-50%,-50%);
+  box-shadow:0 0 8px var(--m),0 0 20px rgba(0,255,65,.4);
+  transition:width .15s,height .15s,background .15s;}
+#cur.big{width:38px;height:38px;background:rgba(0,255,65,.07);border:1px solid var(--m);}
+#cur2{position:fixed;width:36px;height:36px;border:1px solid rgba(0,255,65,.28);
+  border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);
+  transition:left .1s ease,top .1s ease;}
+
+/* BG */
+#bg-c{position:fixed;inset:0;z-index:0;opacity:.3;pointer-events:none;}
+body::after{content:'';position:fixed;inset:0;z-index:1;pointer-events:none;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,.07) 0,rgba(0,0,0,.07) 1px,transparent 1px,transparent 3px);}
+body::before{content:'';position:fixed;inset:0;z-index:1;pointer-events:none;
+  background:radial-gradient(ellipse at 50% 0%,rgba(0,255,65,.04) 0%,transparent 60%);}
+
+body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monospace;
+  min-height:100vh;overflow-x:hidden;}
+
+/* SCROLL PROGRESS */
+#prog{position:fixed;top:0;left:0;height:2px;width:0;z-index:999;
+  background:linear-gradient(90deg,var(--m),var(--c));
+  box-shadow:0 0 10px var(--m);transition:width .15s;}
+
+/* ── NAV ── */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;
+  display:flex;justify-content:space-between;align-items:center;
+  padding:.75rem 2.5rem;
+  background:rgba(0,10,4,.85);backdrop-filter:blur(12px);
+  border-bottom:1px solid rgba(0,255,65,.08);}
+.nav-logo{font-family:'Orbitron',sans-serif;font-size:.75rem;font-weight:900;
+  color:var(--m);letter-spacing:3px;text-transform:uppercase;}
+.nav-logo span{color:var(--c);}
+.nav-badge{font-size:.5rem;letter-spacing:2px;color:var(--muted);text-transform:uppercase;
+  padding:.2rem .6rem;border:1px solid rgba(0,255,65,.15);border-radius:2px;}
+.nav-cta{
+  display:flex;align-items:center;gap:.5rem;
+  padding:.4rem 1.2rem;
+  background:var(--m3);border:1px solid rgba(0,255,65,.3);border-radius:2px;
+  font-family:'Rajdhani',sans-serif;font-size:.7rem;font-weight:700;
+  color:var(--m);letter-spacing:2px;text-transform:uppercase;
+  text-decoration:none;
+  clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,6px 100%,0 calc(100% - 6px));
+  transition:all .2s;
+}
+.nav-cta:hover{background:rgba(0,255,65,.12);box-shadow:0 0 12px rgba(0,255,65,.2);}
+
+/* ── HERO ── */
+.hero{
+  position:relative;z-index:10;
+  min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:8rem 2rem 5rem;
+  text-align:center;
+  overflow:hidden;
+}
+.hero-eyebrow{
+  font-size:.58rem;letter-spacing:5px;color:var(--c);text-transform:uppercase;
+  margin-bottom:1.5rem;
+  opacity:0;animation:fadeUp .6s .2s ease forwards;
+}
+.hero-eyebrow::before,.hero-eyebrow::after{content:'──── ';color:rgba(0,229,255,.3);}
+.hero-eyebrow::after{content:' ────';}
+
+.hero-title{
+  font-family:'Orbitron',sans-serif;
+  font-size:clamp(2rem,6vw,4.5rem);
+  font-weight:900;color:#fff;
+  line-height:1.05;letter-spacing:3px;text-transform:uppercase;
+  opacity:0;animation:fadeUp .8s .4s ease forwards;
+  position:relative;
+}
+.hero-title .accent{color:var(--m);text-shadow:0 0 30px rgba(0,255,65,.5);}
+.hero-title .accent2{color:var(--c);}
+
+/* glitch on hero title */
+.glitch-wrap{position:relative;display:inline-block;}
+.glitch-wrap::before,.glitch-wrap::after{
+  content:attr(data-t);position:absolute;inset:0;
+  font-family:'Orbitron',sans-serif;font-weight:900;
+  text-transform:uppercase;
+}
+.glitch-wrap::before{color:var(--c);animation:gh1 5s steps(2) infinite;
+  clip-path:inset(30% 0 50% 0);transform:translateX(-3px);}
+.glitch-wrap::after{color:var(--r);animation:gh2 5s steps(2) infinite;
+  clip-path:inset(60% 0 20% 0);transform:translateX(3px);}
+@keyframes gh1{0%,88%,100%{opacity:0}89%{opacity:1;clip-path:inset(15% 0 65% 0)}92%{clip-path:inset(50% 0 30% 0)}}
+@keyframes gh2{0%,91%,100%{opacity:0}92%{opacity:1;clip-path:inset(70% 0 10% 0)}95%{clip-path:inset(20% 0 60% 0)}}
+
+.hero-sub{
+  font-family:'Rajdhani',sans-serif;
+  font-size:clamp(.9rem,2vw,1.2rem);
+  color:var(--muted);letter-spacing:2px;text-transform:uppercase;
+  margin-top:1rem;
+  opacity:0;animation:fadeUp .8s .6s ease forwards;
+}
+
+/* PRICE HERO */
+.price-hero{
+  margin-top:2.5rem;
+  display:flex;align-items:center;justify-content:center;gap:1.5rem;
+  opacity:0;animation:fadeUp .8s .8s ease forwards;
+}
+.price-old{font-size:1rem;color:var(--muted);text-decoration:line-through;letter-spacing:1px;}
+.price-now{
+  font-family:'Orbitron',sans-serif;font-size:3rem;font-weight:900;
+  color:var(--m);text-shadow:0 0 30px rgba(0,255,65,.5);
+  line-height:1;
+}
+.price-now sup{font-size:1.2rem;vertical-align:super;}
+.price-tag{
+  padding:.3rem .8rem;
+  background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.3);
+  border-radius:2px;
+  font-size:.55rem;color:var(--g);letter-spacing:2px;font-weight:700;text-transform:uppercase;
+  animation:tagPulse 2s ease infinite;
+}
+@keyframes tagPulse{0%,100%{box-shadow:0 0 6px rgba(255,215,0,.2)}50%{box-shadow:0 0 16px rgba(255,215,0,.4)}}
+
+.hero-cta{
+  margin-top:2rem;
+  display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;
+  opacity:0;animation:fadeUp .8s 1s ease forwards;
+}
+.btn-primary{
+  display:inline-flex;align-items:center;gap:.6rem;
+  padding:.9rem 2.5rem;
+  background:linear-gradient(135deg,rgba(0,255,65,.15),rgba(0,229,255,.08));
+  border:1px solid var(--m);border-radius:3px;
+  font-family:'Orbitron',sans-serif;font-size:.7rem;font-weight:700;
+  color:var(--m);letter-spacing:3px;text-transform:uppercase;
+  text-decoration:none;
+  clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px));
+  transition:all .25s;position:relative;overflow:hidden;
+}
+.btn-primary::before{content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,rgba(0,255,65,.1),transparent);
+  transform:translateX(-100%);transition:.4s;}
+.btn-primary:hover::before{transform:translateX(100%);}
+.btn-primary:hover{background:rgba(0,255,65,.2);box-shadow:0 0 30px rgba(0,255,65,.25);color:#fff;}
+
+.btn-secondary{
+  display:inline-flex;align-items:center;gap:.6rem;
+  padding:.9rem 2rem;
+  background:transparent;border:1px solid rgba(0,229,255,.3);border-radius:3px;
+  font-family:'Rajdhani',sans-serif;font-size:.8rem;font-weight:600;
+  color:var(--c);letter-spacing:2px;text-transform:uppercase;
+  text-decoration:none;transition:all .25s;
+  clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px));
+}
+.btn-secondary:hover{background:rgba(0,229,255,.08);border-color:var(--c);
+  box-shadow:0 0 20px rgba(0,229,255,.15);}
+
+/* TRUST BAR */
+.trust-bar{
+  margin-top:3rem;
+  display:flex;gap:2rem;justify-content:center;flex-wrap:wrap;
+  opacity:0;animation:fadeUp .6s 1.2s ease forwards;
+}
+.trust-item{display:flex;align-items:center;gap:.4rem;
+  font-size:.55rem;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;}
+.trust-item .dot{width:5px;height:5px;border-radius:50%;background:var(--m);
+  box-shadow:0 0 5px var(--m);}
+.trust-item.c .dot{background:var(--c);box-shadow:0 0 5px var(--c);}
+
+/* PREVIEW CARD (mini) */
+.preview-wrap{
+  margin-top:3rem;
+  position:relative;
+  opacity:0;animation:fadeUp .8s 1.4s ease forwards;
+}
+.preview-card{
+  width:320px;height:195px;
+  border-radius:10px;
+  background:linear-gradient(135deg,#020f07,#001a0c);
+  border:1px solid rgba(0,255,65,.25);
+  display:flex;flex-direction:column;justify-content:space-between;
+  padding:16px 18px;
+  position:relative;overflow:hidden;
+  animation:cardFloat 4s ease-in-out infinite;
+  box-shadow:0 20px 60px rgba(0,0,0,.6),0 0 30px rgba(0,255,65,.08);
+  transform-style:preserve-3d;
+}
+@keyframes cardFloat{0%,100%{transform:translateY(0) rotateX(5deg) rotateY(-5deg)}
+  50%{transform:translateY(-8px) rotateX(5deg) rotateY(-5deg)}}
+
+.preview-card::before{content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(0deg,rgba(0,255,65,.02) 0,rgba(0,255,65,.02) 1px,transparent 1px,transparent 20px),
+  repeating-linear-gradient(90deg,rgba(0,255,65,.02) 0,rgba(0,255,65,.02) 1px,transparent 1px,transparent 20px);}
+.preview-card::after{content:'';position:absolute;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(0,255,65,.4),rgba(0,229,255,.4),transparent);
+  animation:pscan 3s linear infinite;box-shadow:0 0 6px rgba(0,255,65,.3);}
+@keyframes pscan{0%{top:-1px;opacity:0}10%{opacity:1}90%{opacity:1}100%{top:100%;opacity:0}}
+
+.pc-top{display:flex;justify-content:space-between;align-items:flex-start;}
+.pc-chip{width:30px;height:22px;border-radius:3px;
+  background:linear-gradient(135deg,rgba(0,229,255,.2),rgba(0,255,65,.15));
+  border:1px solid rgba(0,229,255,.2);}
+.pc-id{font-size:.45rem;color:rgba(0,255,65,.4);text-align:right;line-height:1.7;letter-spacing:.5px;}
+.pc-id span{color:var(--m);}
+
+.pc-mid{display:flex;align-items:center;gap:.75rem;}
+.pc-ava{width:44px;height:44px;border-radius:50%;
+  border:1px solid rgba(0,255,65,.3);
+  background:linear-gradient(135deg,rgba(0,255,65,.1),rgba(0,229,255,.08));}
+.pc-name{font-family:'Orbitron',sans-serif;font-size:.6rem;font-weight:900;
+  color:#fff;letter-spacing:1.5px;text-transform:uppercase;line-height:1.4;
+  text-shadow:0 0 10px rgba(0,255,65,.4);}
+.pc-sub{font-size:.42rem;color:rgba(0,229,255,.6);letter-spacing:1px;margin-top:.15rem;font-family:'Rajdhani',sans-serif;}
+
+.pc-bot{display:flex;justify-content:space-between;align-items:flex-end;}
+.pc-badges{display:flex;flex-direction:column;gap:.2rem;}
+.pb{font-size:.38rem;padding:.08rem .4rem;border-radius:1px;letter-spacing:1px;
+  font-weight:700;text-transform:uppercase;}
+.pb-g{color:var(--m);border:1px solid rgba(0,255,65,.25);}
+.pb-c{color:var(--c);border:1px solid rgba(0,229,255,.25);}
+.pb-gold{color:var(--g);border:1px solid rgba(255,215,0,.25);}
+
+.pc-qr{width:40px;height:40px;
+  background:repeating-linear-gradient(0deg,rgba(0,255,65,.15) 0,rgba(0,255,65,.15) 2px,transparent 2px,transparent 4px),
+  repeating-linear-gradient(90deg,rgba(0,255,65,.15) 0,rgba(0,255,65,.15) 2px,transparent 2px,transparent 4px);
+  border:1px solid rgba(0,255,65,.2);border-radius:2px;}
+
+/* glow ring preview */
+.preview-glow{
+  position:absolute;inset:-3px;border-radius:12px;pointer-events:none;
+  box-shadow:0 0 20px rgba(0,255,65,.12),0 0 60px rgba(0,255,65,.06);
+  animation:glowP 3s ease-in-out infinite;
+}
+@keyframes glowP{50%{box-shadow:0 0 35px rgba(0,255,65,.22),0 0 80px rgba(0,229,255,.08)}}
+
+/* corner cuts preview */
+.pc-corner{position:absolute;width:12px;height:12px;}
+.pc-corner.tl{top:7px;left:7px;border-top:1px solid var(--m);border-left:1px solid var(--m);}
+.pc-corner.tr{top:7px;right:7px;border-top:1px solid var(--c);border-right:1px solid var(--c);}
+.pc-corner.bl{bottom:7px;left:7px;border-bottom:1px solid var(--c);border-left:1px solid var(--c);}
+.pc-corner.br{bottom:7px;right:7px;border-bottom:1px solid var(--m);border-right:1px solid var(--m);}
+
+/* ── SECTIONS ── */
+section{position:relative;z-index:10;padding:5rem 2rem;max-width:960px;margin:0 auto;}
+
+.section-tag{
+  font-size:.55rem;letter-spacing:4px;color:var(--m);text-transform:uppercase;
+  display:flex;align-items:center;gap:1rem;margin-bottom:2rem;
+}
+.section-tag::before,.section-tag::after{content:'';flex:1;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(0,255,65,.2),transparent);}
+.section-tag::after{background:linear-gradient(90deg,rgba(0,255,65,.2),transparent);}
+
+.section-title{
+  font-family:'Orbitron',sans-serif;
+  font-size:clamp(1.5rem,3vw,2.2rem);font-weight:900;
+  color:#fff;letter-spacing:2px;text-transform:uppercase;
+  margin-bottom:1rem;
+}
+.section-sub{font-family:'Rajdhani',sans-serif;font-size:1.05rem;
+  color:var(--muted);line-height:1.7;max-width:600px;}
+
+/* ── WHAT YOU GET ── */
+.deliverables{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:1.25rem;margin-top:3rem;
+}
+.del-card{
+  background:var(--card);border:1px solid rgba(0,255,65,.1);border-radius:6px;
+  padding:1.5rem;position:relative;overflow:hidden;
+  transition:border-color .25s,box-shadow .25s;
+  clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px));
+}
+.del-card::before{content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(0,255,65,.03),transparent);pointer-events:none;}
+.del-card:hover{border-color:rgba(0,255,65,.35);box-shadow:0 0 20px rgba(0,255,65,.07);}
+.del-icon{font-size:1.5rem;margin-bottom:.75rem;}
+.del-title{font-family:'Rajdhani',sans-serif;font-size:.95rem;font-weight:700;
+  color:#fff;letter-spacing:2px;text-transform:uppercase;margin-bottom:.4rem;}
+.del-desc{font-size:.62rem;color:var(--muted);line-height:1.7;letter-spacing:.5px;}
+.del-tag{display:inline-block;margin-top:.75rem;padding:.15rem .55rem;
+  font-size:.48rem;letter-spacing:1.5px;font-weight:700;text-transform:uppercase;
+  border-radius:2px;}
+.dt-g{color:var(--m);border:1px solid rgba(0,255,65,.25);background:rgba(0,255,65,.04);}
+.dt-c{color:var(--c);border:1px solid rgba(0,229,255,.25);background:rgba(0,229,255,.04);}
+.dt-gold{color:var(--g);border:1px solid rgba(255,215,0,.25);background:rgba(255,215,0,.04);}
+
+/* INCLUDE COUNT */
+.include-count{
+  margin-top:3rem;text-align:center;
+  padding:2rem;
+  background:linear-gradient(135deg,rgba(0,255,65,.04),rgba(0,229,255,.03));
+  border:1px solid rgba(0,255,65,.12);border-radius:6px;
+}
+.count-num{
+  font-family:'Orbitron',sans-serif;font-size:3.5rem;font-weight:900;
+  color:var(--m);text-shadow:0 0 30px rgba(0,255,65,.4);line-height:1;
+}
+.count-label{font-family:'Rajdhani',sans-serif;font-size:.8rem;
+  color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-top:.5rem;}
+
+/* ── FEATURES GRID ── */
+.features{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:1rem;margin-top:3rem;
+}
+.feat{
+  padding:1.25rem;border:1px solid rgba(0,255,65,.08);border-radius:4px;
+  background:rgba(0,255,65,.02);position:relative;
+  transition:border-color .2s;
+}
+.feat:hover{border-color:rgba(0,229,255,.3);}
+.feat-dot{width:6px;height:6px;border-radius:50%;background:var(--m);
+  box-shadow:0 0 6px var(--m);margin-bottom:.75rem;}
+.feat:nth-child(2n) .feat-dot{background:var(--c);box-shadow:0 0 6px var(--c);}
+.feat:nth-child(3n) .feat-dot{background:var(--g);box-shadow:0 0 6px var(--g);}
+.feat-name{font-family:'Rajdhani',sans-serif;font-size:.82rem;font-weight:700;
+  color:#fff;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:.3rem;}
+.feat-desc{font-size:.55rem;color:var(--muted);line-height:1.6;letter-spacing:.5px;}
+
+/* ── PRICING ── */
+.pricing-box{
+  margin-top:3rem;
+  background:linear-gradient(135deg,rgba(0,255,65,.05),rgba(0,229,255,.03));
+  border:1px solid rgba(0,255,65,.25);border-radius:8px;
+  padding:3rem;text-align:center;position:relative;overflow:hidden;
+  clip-path:polygon(0 0,calc(100% - 20px) 0,100% 20px,100% 100%,20px 100%,0 calc(100% - 20px));
+}
+.pricing-box::before{content:'';position:absolute;inset:0;
+  background:linear-gradient(115deg,transparent 30%,rgba(0,255,65,.04) 50%,transparent 70%);
+  background-size:200% 100%;animation:shineSweep 4s ease infinite;}
+@keyframes shineSweep{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+.pricing-label{font-size:.55rem;letter-spacing:3px;color:var(--muted);
+  text-transform:uppercase;margin-bottom:1rem;}
+.pricing-main{
+  font-family:'Orbitron',sans-serif;font-size:5rem;font-weight:900;
+  color:var(--m);text-shadow:0 0 40px rgba(0,255,65,.5);line-height:1;
+}
+.pricing-main sup{font-size:1.8rem;vertical-align:super;}
+.pricing-period{font-size:.65rem;color:var(--muted);letter-spacing:2px;margin-top:.5rem;}
+.pricing-was{font-size:.7rem;color:rgba(255,100,100,.4);text-decoration:line-through;
+  letter-spacing:1px;margin-top:.3rem;}
+
+.pricing-includes{
+  margin-top:2rem;display:flex;flex-direction:column;gap:.6rem;
+  text-align:left;max-width:420px;margin-left:auto;margin-right:auto;
+}
+.pi{display:flex;align-items:center;gap:.75rem;
+  font-size:.65rem;color:var(--text);letter-spacing:.5px;line-height:1.5;}
+.pi::before{content:'✓';color:var(--m);font-weight:bold;min-width:16px;
+  text-shadow:0 0 6px var(--m);}
+.pi.c::before{content:'✓';color:var(--c);text-shadow:0 0 6px var(--c);}
+
+.pricing-cta{
+  margin-top:2.5rem;
+  display:inline-flex;align-items:center;gap:.8rem;
+  padding:1.1rem 3rem;
+  background:linear-gradient(135deg,rgba(0,255,65,.18),rgba(0,229,255,.1));
+  border:1px solid var(--m);border-radius:3px;
+  font-family:'Orbitron',sans-serif;font-size:.72rem;font-weight:700;
+  color:#fff;letter-spacing:3px;text-transform:uppercase;
+  text-decoration:none;
+  clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px));
+  transition:all .25s;position:relative;overflow:hidden;
+  box-shadow:0 0 20px rgba(0,255,65,.15);
+}
+.pricing-cta:hover{background:rgba(0,255,65,.28);
+  box-shadow:0 0 40px rgba(0,255,65,.3);}
+.pricing-cta .pulse-dot{width:8px;height:8px;border-radius:50%;background:var(--m);
+  animation:pd 1.5s ease infinite;box-shadow:0 0 6px var(--m);}
+@keyframes pd{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.6)}}
+
+.pricing-note{margin-top:1rem;font-size:.55rem;color:var(--muted);letter-spacing:1px;}
+
+/* ── FAQ / ABOUT ── */
+.about-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:2.5rem;
+}
+@media(max-width:640px){.about-grid{grid-template-columns:1fr;}}
+.about-item{padding:1.25rem;border:1px solid rgba(0,255,65,.07);border-radius:4px;
+  background:rgba(0,255,65,.015);}
+.about-q{font-family:'Rajdhani',sans-serif;font-size:.8rem;font-weight:700;
+  color:var(--c);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:.5rem;}
+.about-a{font-size:.62rem;color:var(--muted);line-height:1.8;letter-spacing:.5px;}
+
+/* ── FOOTER ── */
+footer{
+  position:relative;z-index:10;
+  border-top:1px solid rgba(0,255,65,.08);
+  padding:2rem;text-align:center;
+  font-size:.55rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;
+}
+.footer-logo{font-family:'Orbitron',sans-serif;font-size:.7rem;font-weight:900;
+  color:var(--m);letter-spacing:3px;margin-bottom:.5rem;}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+/* stagger sections */
+.fade-in{opacity:0;transform:translateY(24px);transition:opacity .8s ease,transform .8s ease;}
+.fade-in.visible{opacity:1;transform:translateY(0);}
+
+@media(max-width:600px){
+  nav{padding:.75rem 1.25rem;}
+  .hero-title{font-size:1.8rem;}
+  .pricing-main{font-size:3.5rem;}
+  .preview-card{width:280px;height:170px;}
+}
+</style>
+</head>
+<body>
+
+<div id="cur"></div><div id="cur2"></div>
+<div id="prog"></div>
+<canvas id="bg-c"></canvas>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">SOVEREIGN<span>CARD</span></div>
+  <div class="nav-badge">Enterprise Edition</div>
+  <a href="https://ciprianstefanplesca.gumroad.com/l/HoloCardUI" target="_blank" class="nav-cta">GET IT NOW →</a>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">Enterprise Digital Identity · 2026</div>
+  <h1 class="hero-title">
+    <div class="glitch-wrap" data-t="SOVEREIGN">SOVEREIGN</div><br>
+    <span class="accent">HOLOGRAPHIC</span><br>
+    <span class="accent2">BUSINESS CARD</span>
+  </h1>
+  <p class="hero-sub">The World's First Matrix-Grade Digital Identity System<br>Built with Zero Frameworks · Pure HTML CSS JS</p>
+
+  <div class="price-hero">
+    <span class="price-old">$97</span>
+    <div>
+      <div class="price-now"><sup>$</sup>47</div>
+    </div>
+    <div class="price-tag">LIMITED LAUNCH</div>
+  </div>
+
+  <div class="hero-cta">
+    <a href="https://ciprianstefanplesca.gumroad.com/l/HoloCardUI" target="_blank" class="btn-primary">
+      ⚡ Buy Now on Gumroad
+    </a>
+    <a href="#whats-inside" class="btn-secondary">See What's Inside ↓</a>
+  </div>
+
+  <div class="trust-bar">
+    <div class="trust-item"><div class="dot"></div>Zero Dependencies</div>
+    <div class="trust-item c"><div class="dot"></div>Instant Download</div>
+    <div class="trust-item"><div class="dot"></div>Lifetime Access</div>
+    <div class="trust-item c"><div class="dot"></div>100% Vanilla JS</div>
+    <div class="trust-item"><div class="dot"></div>Commercial License</div>
+  </div>
+
+  <!-- mini preview card -->
+  <div class="preview-wrap">
+    <div class="preview-card">
+      <div class="preview-glow"></div>
+      <div class="pc-corner tl"></div><div class="pc-corner tr"></div>
+      <div class="pc-corner bl"></div><div class="pc-corner br"></div>
+      <div class="pc-top">
+        <div class="pc-chip"></div>
+        <div class="pc-id">ID/<span>CSP-2026</span><br>NET/<span>LOCALPULSE</span></div>
+      </div>
+      <div class="pc-mid">
+        <div class="pc-ava"></div>
+        <div>
+          <div class="pc-name">YOUR NAME<br>HERE</div>
+          <div class="pc-sub">Your Title · Your Brand</div>
+        </div>
+      </div>
+      <div class="pc-bot">
+        <div class="pc-badges">
+          <span class="pb pb-g">Your Badge</span>
+          <span class="pb pb-c">Your Specialty</span>
+          <span class="pb pb-gold">Your Value</span>
+        </div>
+        <div class="pc-qr"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- WHAT'S INSIDE -->
+<section id="whats-inside" class="fade-in">
+  <div class="section-tag">// deliverables</div>
+  <h2 class="section-title">Everything You Receive</h2>
+  <p class="section-sub">One purchase. Complete enterprise-grade identity system. Ready to deploy in minutes.</p>
+
+  <div class="deliverables">
+
+    <div class="del-card">
+      <div class="del-icon">🃏</div>
+      <div class="del-title">Holographic Business Card</div>
+      <div class="del-desc">Full 3D tilt-reactive card with Matrix rain background, holographic foil effect, real-time cursor tracking, glitch animations on name, animated hex ring avatar frame, micro-chip, and pixel QR code. Front + back flip with all your links.</div>
+      <span class="del-tag dt-g">HTML · CSS · JS</span>
+    </div>
+
+    <div class="del-card">
+      <div class="del-icon">🌐</div>
+      <div class="del-title">Enterprise Landing Page</div>
+      <div class="del-desc">Full product presentation page (this page) with Matrix rain, custom cursor, animated hero with glitch title, scroll-reveal sections, feature grid, pricing block — everything needed to sell or showcase your card professionally.</div>
+      <span class="del-tag dt-c">Fully Responsive</span>
+    </div>
+
+    <div class="del-card">
+      <div class="del-icon">🔗</div>
+      <div class="del-title">Links Portfolio Page</div>
+      <div class="del-desc">Premium Linktree-style portfolio page with Matrix rain, animated profile section with orbiting hex ring, 8 styled link buttons with sweep animations, terminal footer, live clock, and status bar. Zero frameworks.</div>
+      <span class="del-tag dt-g">Production Ready</span>
+    </div>
+
+    <div class="del-card">
+      <div class="del-icon">⚙️</div>
+      <div class="del-title">Customization Guide</div>
+      <div class="del-desc">Step-by-step README with every variable annotated. Change name, title, avatar, colors, links, badges and QR in under 5 minutes. No build tools. No npm. No config. Open in any browser.</div>
+      <span class="del-tag dt-gold">README.md</span>
+    </div>
+
+    <div class="del-card">
+      <div class="del-icon">📜</div>
+      <div class="del-title">Commercial License</div>
+      <div class="del-desc">Use it for yourself, your clients, your agency. Reskin and deliver to paying clients. White-label permitted. The only restriction: you cannot resell the template as-is on other marketplaces.</div>
+      <span class="del-tag dt-c">Unlimited Projects</span>
+    </div>
+
+    <div class="del-card">
+      <div class="del-icon">🚀</div>
+      <div class="del-title">Deploy Guide</div>
+      <div class="del-desc">Exact steps to publish live on GitHub Pages, Netlify, or Vercel in under 3 minutes. Includes custom domain setup tips and how to share the link as your digital identity anywhere online.</div>
+      <span class="del-tag dt-gold">3-Min Setup</span>
+    </div>
+
+  </div>
+
+  <div class="include-count">
+    <div class="count-num">3</div>
+    <div class="count-label">Production-Grade HTML Files · Instant Download · No Dependencies</div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="fade-in">
+  <div class="section-tag">// tech_specs</div>
+  <h2 class="section-title">Technical Features</h2>
+  <p class="section-sub">Every effect, every animation, every pixel — hand-crafted in pure Vanilla JS and CSS.</p>
+
+  <div class="features">
+    <div class="feat"><div class="feat-dot"></div><div class="feat-name">Matrix Rain Canvas</div><div class="feat-desc">Japanese katakana + hex chars with brightness variance and cyan highlights. Fully responsive.</div></div>
+    <div class="feat"><div class="feat-dot"></div><div class="feat-name">3D Tilt Engine</div><div class="feat-desc">Real-time mouse-tracking perspective tilt on both axes (±18°) with smooth easing.</div></div>
+    <div class="feat"><div class="feat-dot"></div><div class="feat-name">Holographic Foil</div><div class="feat-desc">Conic gradient rainbow foil that follows mouse position across the card surface.</div></div>
+    <div class="feat"><div class="feat-dot"></div><div class="feat-name">RGB Glitch System</div><div class="feat-desc">Frame-perfect name glitch with cyan+red channel displacement at randomized intervals.</div></div>
+    <div class="feat"><div class="feat-dot"></div><div class="feat-name">Custom Cursor</div><div class="feat-desc">Glowing dot with trailing ring, expands on interactive elements. Full cross-browser.</div></div>
+    <div class="feat"><div class="feat-dot"></div><div class="feat-name">Particle Network</div><div class="feat-desc">60 floating particles with proximity-based connection lines and dual-color palette.</div></div>
+    <div class="feat"><div class="feat-dot"></div><div class="feat-name">Card Flip System</div><div class="feat-desc">3D CSS rotateY flip between identity front and links back. Click anywhere on card.</div></div>
+    <div class="feat"><div class="feat-dot"></div><div class="feat-name">Pixel QR Code</div><div class="feat-desc">Deterministically generated QR art — unique fingerprint seeded from name hash.</div></div>
+    <div class="feat"><div class="feat-dot"></div><div class="feat-name">Scan Line Engine</div><div class="feat-desc">Animated scan line with glow traverses the card on loop. CRT monitor aesthetic.</div></div>
+    <div class="feat"><div class="feat-dot"></div><div class="feat-name">Typing Decrypt FX</div><div class="feat-desc">Subtitle reveals itself via randomized chars — cipher-decoding effect on page load.</div></div>
+    <div class="feat"><div class="feat-dot"></div><div class="feat-name">Scroll Progress Bar</div><div class="feat-desc">Glowing green/cyan gradient line tracks reading progress at top of viewport.</div></div>
+    <div class="feat"><div class="feat-dot"></div><div class="feat-name">Zero Dependencies</div><div class="feat-desc">No React. No Vue. No webpack. No npm. Two Google Fonts. That's it. Pure mastery.</div></div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="fade-in">
+  <div class="section-tag">// pricing</div>
+  <h2 class="section-title">One Price. Everything.</h2>
+  <div class="pricing-box">
+    <div class="pricing-label">Enterprise Launch Price · Limited Time</div>
+    <div class="pricing-main"><sup>$</sup>47</div>
+    <div class="pricing-period">One-time payment · Lifetime access · Instant download</div>
+    <div class="pricing-was">Regular price: $97</div>
+
+    <div class="pricing-includes">
+      <div class="pi">Holographic Business Card (holographic-card.html)</div>
+      <div class="pi c">Enterprise Product Landing Page (this page)</div>
+      <div class="pi">Links Portfolio Page (index.html)</div>
+      <div class="pi c">Customization README with annotated variables</div>
+      <div class="pi">Deploy Guide — GitHub Pages / Netlify / Vercel</div>
+      <div class="pi c">Commercial License — use for yourself & clients</div>
+      <div class="pi">Lifetime updates via Gumroad</div>
+    </div>
+
+    <a href="https://ciprianstefanplesca.gumroad.com/l/HoloCardUI" target="_blank" class="pricing-cta">
+      <div class="pulse-dot"></div>
+      Buy Now for $47 on Gumroad
+    </a>
+    <div class="pricing-note">Secure payment via Gumroad · Instant download · No subscription</div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="fade-in">
+  <div class="section-tag">// faq</div>
+  <h2 class="section-title">Common Questions</h2>
+  <div class="about-grid">
+    <div class="about-item">
+      <div class="about-q">Do I need to know how to code?</div>
+      <div class="about-a">Basic text editing is enough. Every variable is labeled in the README. Name, title, avatar URL, links — swap them in under 5 minutes in any text editor.</div>
+    </div>
+    <div class="about-item">
+      <div class="about-q">Can I use it for client projects?</div>
+      <div class="about-a">Yes. The commercial license covers you and your clients. Reskin it and deliver to paying clients as part of your services. Unlimited projects.</div>
+    </div>
+    <div class="about-item">
+      <div class="about-q">Does it work on mobile?</div>
+      <div class="about-a">Fully responsive. The card, landing page, and portfolio all adapt to mobile viewports. Touch interactions replace mouse tilt on mobile devices.</div>
+    </div>
+    <div class="about-item">
+      <div class="about-q">What frameworks does it use?</div>
+      <div class="about-a">Zero. None. This is the point. Pure HTML, CSS, and Vanilla JavaScript. Two Google Fonts. No React, no Vue, no Tailwind, no npm, no build step.</div>
+    </div>
+    <div class="about-item">
+      <div class="about-q">How do I publish it online?</div>
+      <div class="about-a">The deploy guide covers GitHub Pages (free, 3 min), Netlify (free, drag & drop), and Vercel. You can have a live link to share within minutes of purchase.</div>
+    </div>
+    <div class="about-item">
+      <div class="about-q">Will I get updates?</div>
+      <div class="about-a">Yes. All future updates to the system are included in your one-time purchase, delivered automatically through Gumroad.</div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">SOVEREIGN CARD</div>
+  <div>© 2026 CIPRIAN STEFAN PLESCA. ALL RIGHTS RESERVED. SOVEREIGN ASSET PROTECTION ACTIVE.</div>
+  <div style="margin-top:.4rem"> 100% Vanilla JS · Zero Bloated Frameworks</div>
+</footer>
+
+<script>
+// CURSOR
+const cur=document.getElementById('cur'),cur2=document.getElementById('cur2');
+document.addEventListener('mousemove',e=>{
+  cur.style.left=e.clientX+'px';cur.style.top=e.clientY+'px';
+  setTimeout(()=>{cur2.style.left=e.clientX+'px';cur2.style.top=e.clientY+'px';},90);
+});
+document.querySelectorAll('a,button').forEach(el=>{
+  el.addEventListener('mouseenter',()=>cur.classList.add('big'));
+  el.addEventListener('mouseleave',()=>cur.classList.remove('big'));
+});
+
+// PROGRESS
+window.addEventListener('scroll',()=>{
+  const pct=window.scrollY/(document.body.scrollHeight-window.innerHeight)*100;
+  document.getElementById('prog').style.width=pct+'%';
+});
+
+// MATRIX
+(function(){
+  const c=document.getElementById('bg-c'),ctx=c.getContext('2d');
+  let W,H,cols,drops;
+  const chars='アイウエオカキクケコサシスセソタチツテトナニヌネノ0123456789ABCDEF<>{}[]|/\\';
+  function init(){
+    W=c.width=window.innerWidth;H=c.height=window.innerHeight;
+    const fs=13;cols=Math.floor(W/fs);
+    drops=Array.from({length:cols},()=>Math.random()*-H/fs);
+  }
+  function draw(){
+    ctx.fillStyle='rgba(0,5,2,.06)';ctx.fillRect(0,0,W,H);
+    const fs=13;
+    for(let i=0;i<cols;i++){
+      const ch=chars[Math.floor(Math.random()*chars.length)];
+      const bright=Math.random()>.97;
+      ctx.fillStyle=bright?'#fff':(Math.random()>.85?'#00e5ff':'#00ff41');
+      ctx.font=(bright?'bold ':'')+fs+'px Share Tech Mono,monospace';
+      ctx.globalAlpha=bright?1:.25+Math.random()*.3;
+      ctx.fillText(ch,i*fs,drops[i]*fs);
+      ctx.globalAlpha=1;
+      if(drops[i]*fs>H&&Math.random()>.975)drops[i]=0;
+      drops[i]+=.4;
+    }
+  }
+  init();window.addEventListener('resize',init);
+  setInterval(draw,40);
+})();
+
+// SCROLL REVEAL
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');});
+},{threshold:.1});
+document.querySelectorAll('.fade-in').forEach(el=>obs.observe(el));
+
+// SMOOTH SCROLL
+document.querySelector('a[href="#whats-inside"]').addEventListener('click',e=>{
+  e.preventDefault();
+  document.getElementById('whats-inside').scrollIntoView({behavior:'smooth'});
+});
+</script>
+</body>
+</html>
