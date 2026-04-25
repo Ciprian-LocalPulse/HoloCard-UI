@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ciprian Stefan Plesca | Holographic ID</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --m:#00ff41; --m2:rgba(0,255,65,.18); --m3:rgba(0,255,65,.04);
+  --c:#00e5ff; --c2:rgba(0,229,255,.2); --r:#ff003c;
+  --g:#ffd700; --bg:#000d04; --card-w:440px; --card-h:265px;
+}
+*{box-sizing:border-box;margin:0;padding:0;cursor:none!important;}
+
+/* ── CURSOR ── */
+#cur{position:fixed;width:10px;height:10px;border-radius:50%;background:var(--m);
+  pointer-events:none;z-index:9999;transform:translate(-50%,-50%);
+  box-shadow:0 0 8px var(--m),0 0 20px rgba(0,255,65,.4);transition:.1s;}
+#cur.big{width:36px;height:36px;background:rgba(0,255,65,.08);
+  border:1px solid var(--m);}
+#cur2{position:fixed;width:34px;height:34px;border:1px solid rgba(0,255,65,.3);
+  border-radius:50%;pointer-events:none;z-index:9998;
+  transform:translate(-50%,-50%);transition:left .1s ease,top .1s ease;}
+
+/* ── MATRIX BG ── */
+#bg-canvas{position:fixed;inset:0;z-index:0;opacity:.45;pointer-events:none;}
+
+/* ── SCANLINES ── */
+body::after{content:'';position:fixed;inset:0;z-index:1;pointer-events:none;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,.08) 0,rgba(0,0,0,.08) 1px,transparent 1px,transparent 3px);}
+
+/* ── VIGNETTE ── */
+body::before{content:'';position:fixed;inset:0;z-index:1;pointer-events:none;
+  background:radial-gradient(ellipse at 50% 50%,transparent 30%,rgba(0,0,0,.92) 100%);}
+
+body{background:var(--bg);min-height:100vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;padding:2rem;overflow:hidden;
+  font-family:'Share Tech Mono',monospace;}
+
+/* ── SCENE ── */
+.scene{position:relative;z-index:10;display:flex;flex-direction:column;align-items:center;gap:2rem;}
+
+/* ── PROJECTION BEAM ── */
+.beam{
+  position:absolute;bottom:-40px;left:50%;transform:translateX(-50%);
+  width:6px;height:60px;
+  background:linear-gradient(to bottom,var(--m),transparent);
+  border-radius:3px;
+  box-shadow:0 0 20px var(--m),0 0 60px rgba(0,255,65,.3);
+  animation:beamPulse 2s ease-in-out infinite;
+}
+.beam-base{
+  position:absolute;bottom:-60px;left:50%;transform:translateX(-50%);
+  width:80px;height:3px;
+  background:radial-gradient(ellipse,var(--m) 0%,transparent 70%);
+  animation:beamPulse 2s ease-in-out infinite;
+}
+@keyframes beamPulse{0%,100%{opacity:.7;transform:translateX(-50%) scaleX(1)}50%{opacity:1;transform:translateX(-50%) scaleX(1.3)}}
+
+/* ── CARD WRAPPER (3D stage) ── */
+.card-scene{
+  width:var(--card-w);height:var(--card-h);
+  perspective:900px;position:relative;
+  animation:floatY 4s ease-in-out infinite;
+}
+@keyframes floatY{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+
+.card-inner{
+  width:100%;height:100%;
+  transform-style:preserve-3d;
+  transition:transform .7s cubic-bezier(.4,0,.2,1);
+  position:relative;
+}
+.card-inner.flipped{transform:rotateY(180deg);}
+
+/* ── CARD FACE (shared) ── */
+.card-face{
+  position:absolute;inset:0;
+  border-radius:12px;
+  backface-visibility:hidden;
+  overflow:hidden;
+  border:1px solid rgba(0,255,65,.25);
+  background:linear-gradient(135deg,#020f07 0%,#00140a 40%,#010d05 100%);
+}
+
+/* ── HOLOGRAPHIC FOIL ── */
+.card-face::before{
+  content:'';position:absolute;inset:0;border-radius:12px;
+  background:conic-gradient(
+    from var(--hue,0deg) at var(--mx,50%) var(--my,50%),
+    rgba(255,0,128,.07),rgba(255,160,0,.07),rgba(0,255,128,.07),
+    rgba(0,200,255,.07),rgba(180,0,255,.07),rgba(255,0,128,.07)
+  );
+  opacity:0;transition:opacity .3s;pointer-events:none;z-index:2;
+}
+.card-scene:hover .card-face::before{opacity:1;}
+
+/* ── CARD SHINE SWEEP ── */
+.card-face::after{
+  content:'';position:absolute;inset:0;border-radius:12px;
+  background:linear-gradient(115deg,transparent 30%,rgba(0,255,65,.06) 50%,transparent 70%);
+  background-size:200% 100%;
+  animation:shineSweep 3s ease infinite;pointer-events:none;z-index:3;
+}
+@keyframes shineSweep{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* ── CARD BACK (flipped) ── */
+.card-back{transform:rotateY(180deg);}
+
+/* ── CORNER DECOR ── */
+.corner{position:absolute;width:18px;height:18px;}
+.corner.tl{top:10px;left:10px;border-top:1px solid var(--m);border-left:1px solid var(--m);}
+.corner.tr{top:10px;right:10px;border-top:1px solid var(--c);border-right:1px solid var(--c);}
+.corner.bl{bottom:10px;left:10px;border-bottom:1px solid var(--c);border-left:1px solid var(--c);}
+.corner.br{bottom:10px;right:10px;border-bottom:1px solid var(--m);border-right:1px solid var(--m);}
+
+/* ── GRID LINES ── */
+.grid-lines{position:absolute;inset:0;z-index:1;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(0,255,65,.04) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,255,65,.04) 1px,transparent 1px);
+  background-size:30px 30px;}
+
+/* ── SCAN LINE MOVING ── */
+.scan-line{
+  position:absolute;left:0;right:0;height:2px;z-index:4;pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(0,255,65,.3),rgba(0,229,255,.3),transparent);
+  animation:scanMove 3s linear infinite;
+  box-shadow:0 0 8px rgba(0,255,65,.4);
+}
+@keyframes scanMove{0%{top:-2px;opacity:0}10%{opacity:1}90%{opacity:1}100%{top:100%;opacity:0}}
+
+/* ─── FRONT CARD ─── */
+.card-front{z-index:1;}
+
+.front-content{
+  position:relative;z-index:5;
+  height:100%;display:flex;flex-direction:column;
+  justify-content:space-between;padding:22px 26px;
+}
+
+.top-row{display:flex;justify-content:space-between;align-items:flex-start;}
+
+.holo-chip{
+  width:42px;height:30px;border-radius:4px;
+  background:linear-gradient(135deg,
+    rgba(0,229,255,.15) 0%,rgba(0,255,65,.2) 50%,rgba(255,215,0,.1) 100%);
+  border:1px solid rgba(0,229,255,.3);
+  display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(4,1fr);
+  gap:1px;padding:3px;
+}
+.holo-chip div{background:rgba(0,229,255,.25);border-radius:1px;
+  animation:chipFlicker 2s steps(1) infinite;}
+.holo-chip div:nth-child(2n){animation-delay:.3s;}
+.holo-chip div:nth-child(3n){animation-delay:.7s;background:rgba(0,255,65,.2);}
+@keyframes chipFlicker{0%,100%{opacity:1}50%{opacity:.3}}
+
+.id-code{
+  font-size:.55rem;color:rgba(0,255,65,.5);
+  line-height:1.6;text-align:right;letter-spacing:1px;
+}
+.id-code span{color:var(--m);}
+
+/* avatar */
+.avatar-zone{display:flex;align-items:center;gap:1rem;}
+.avatar-hex{
+  position:relative;width:62px;height:62px;flex-shrink:0;
+}
+.avatar-hex img{
+  width:58px;height:58px;border-radius:50%;
+  display:block;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  filter:saturate(.7) contrast(1.1);
+  border:1px solid rgba(0,255,65,.3);
+}
+.hex-ring-svg{position:absolute;inset:0;animation:spin 8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.name-zone{}
+.card-name{
+  font-family:'Orbitron',sans-serif;
+  font-size:1rem;font-weight:900;
+  color:#fff;letter-spacing:2px;
+  text-transform:uppercase;line-height:1.2;
+  text-shadow:0 0 12px rgba(0,255,65,.5);
+}
+.card-name .glitch-layer{
+  position:relative;display:inline-block;
+}
+.card-name .glitch-layer::before,.card-name .glitch-layer::after{
+  content:attr(data-t);position:absolute;inset:0;
+}
+.card-name .glitch-layer::before{
+  color:var(--c);animation:ng1 4s steps(2) infinite;clip-path:inset(40% 0 50% 0);
+  transform:translateX(-2px);
+}
+.card-name .glitch-layer::after{
+  color:var(--r);animation:ng2 4s steps(2) infinite;clip-path:inset(60% 0 20% 0);
+  transform:translateX(2px);
+}
+@keyframes ng1{0%,89%,100%{opacity:0}90%{opacity:1;clip-path:inset(20% 0 60% 0)}93%{clip-path:inset(55% 0 15% 0)}}
+@keyframes ng2{0%,91%,100%{opacity:0}92%{opacity:1;clip-path:inset(65% 0 5% 0)}95%{clip-path:inset(10% 0 80% 0)}}
+
+.card-title{
+  font-family:'Rajdhani',sans-serif;
+  font-size:.65rem;color:rgba(0,229,255,.8);
+  letter-spacing:2px;text-transform:uppercase;
+  margin-top:.25rem;
+}
+
+/* bottom row */
+.bottom-row{display:flex;justify-content:space-between;align-items:flex-end;}
+
+.badges-stack{display:flex;flex-direction:column;gap:.3rem;}
+.micro-badge{
+  display:inline-block;padding:.1rem .5rem;
+  font-size:.5rem;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;
+  border-radius:2px;
+}
+.mb-g{color:var(--m);border:1px solid rgba(0,255,65,.3);background:rgba(0,255,65,.05);}
+.mb-c{color:var(--c);border:1px solid rgba(0,229,255,.3);background:rgba(0,229,255,.05);}
+.mb-gold{color:var(--g);border:1px solid rgba(255,215,0,.3);background:rgba(255,215,0,.05);}
+
+.qr-zone{position:relative;}
+#qr-canvas{border:1px solid rgba(0,255,65,.2);border-radius:3px;
+  image-rendering:pixelated;
+  box-shadow:0 0 10px rgba(0,255,65,.15);}
+.qr-label{font-size:.42rem;color:rgba(0,255,65,.4);text-align:center;
+  margin-top:.25rem;letter-spacing:1px;}
+
+/* email row */
+.email-row{
+  font-size:.58rem;color:rgba(0,255,65,.5);
+  display:flex;align-items:center;gap:.4rem;letter-spacing:.5px;
+}
+.email-row .dot{width:4px;height:4px;border-radius:50%;background:var(--m);
+  animation:pulse 2s infinite;box-shadow:0 0 4px var(--m);}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* flip hint */
+.flip-hint{
+  position:absolute;bottom:6px;left:50%;transform:translateX(-50%);
+  font-size:.45rem;color:rgba(0,255,65,.3);letter-spacing:2px;
+  text-transform:uppercase;
+  animation:hintPulse 2s ease infinite;
+}
+@keyframes hintPulse{0%,100%{opacity:.3}50%{opacity:.7}}
+
+/* ─── BACK CARD ─── */
+.back-content{
+  position:relative;z-index:5;
+  height:100%;display:flex;flex-direction:column;
+  padding:16px 20px;gap:7px;
+}
+.back-title{
+  font-family:'Orbitron',sans-serif;font-size:.58rem;
+  color:rgba(0,255,65,.5);letter-spacing:3px;text-transform:uppercase;
+  text-align:center;padding-bottom:6px;
+  border-bottom:1px solid rgba(0,255,65,.1);
+  margin-bottom:2px;
+}
+.back-link{
+  display:flex;align-items:center;gap:.6rem;
+  padding:.35rem .6rem;
+  border:1px solid rgba(0,255,65,.1);border-radius:4px;
+  background:rgba(0,255,65,.025);
+  text-decoration:none;color:rgba(200,255,220,.8);
+  font-size:.6rem;letter-spacing:.5px;
+  transition:all .2s ease;
+  position:relative;overflow:hidden;
+  clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,6px 100%,0 calc(100% - 6px));
+}
+.back-link::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,rgba(0,255,65,.07),transparent);
+  transform:translateX(-100%);transition:transform .3s;
+}
+.back-link:hover::before{transform:translateX(100%);}
+.back-link:hover{border-color:rgba(0,255,65,.4);color:#fff;
+  box-shadow:0 0 10px rgba(0,255,65,.1);}
+.back-link.c-link{border-color:rgba(0,229,255,.1);
+  background:rgba(0,229,255,.025);color:rgba(180,240,255,.8);}
+.back-link.c-link:hover{border-color:rgba(0,229,255,.4);
+  box-shadow:0 0 10px rgba(0,229,255,.1);}
+.bl-icon{font-size:.8rem;min-width:16px;text-align:center;}
+.bl-text{flex:1;font-family:'Rajdhani',sans-serif;font-weight:600;font-size:.72rem;letter-spacing:1px;}
+.bl-arr{color:rgba(0,255,65,.4);font-size:.6rem;transition:transform .2s,color .2s;}
+.back-link:hover .bl-arr{transform:translateX(3px);color:var(--m);}
+.c-link .bl-arr{color:rgba(0,229,255,.4);}
+.c-link:hover .bl-arr{color:var(--c);}
+
+/* ── GLOW RING AROUND CARD ── */
+.card-glow{
+  position:absolute;inset:-2px;border-radius:14px;pointer-events:none;z-index:0;
+  background:transparent;
+  box-shadow:
+    0 0 20px rgba(0,255,65,.12),
+    0 0 60px rgba(0,255,65,.06),
+    inset 0 0 20px rgba(0,255,65,.04);
+  animation:glowPulse 3s ease-in-out infinite;
+}
+@keyframes glowPulse{0%,100%{box-shadow:0 0 20px rgba(0,255,65,.12),0 0 60px rgba(0,255,65,.06),inset 0 0 20px rgba(0,255,65,.04)}50%{box-shadow:0 0 30px rgba(0,255,65,.22),0 0 80px rgba(0,255,65,.1),0 0 120px rgba(0,229,255,.05),inset 0 0 30px rgba(0,255,65,.07)}}
+
+/* ── BOTTOM UI ── */
+.bottom-ui{
+  display:flex;flex-direction:column;align-items:center;gap:.75rem;
+  opacity:0;animation:fadeUp .8s 1s ease forwards;
+}
+.flip-btn{
+  display:flex;align-items:center;gap:.6rem;
+  padding:.5rem 1.5rem;
+  background:rgba(0,255,65,.05);
+  border:1px solid rgba(0,255,65,.25);
+  border-radius:3px;
+  font-family:'Share Tech Mono',monospace;
+  font-size:.65rem;color:var(--m);
+  letter-spacing:2px;text-transform:uppercase;
+  cursor:pointer!important;
+  transition:all .2s;
+  clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));
+}
+.flip-btn:hover{background:rgba(0,255,65,.12);border-color:var(--m);
+  box-shadow:0 0 15px rgba(0,255,65,.2);}
+.flip-dot{width:6px;height:6px;border-radius:50%;background:var(--m);
+  animation:pulse 1.5s infinite;box-shadow:0 0 5px var(--m);}
+
+.status-strip{
+  font-size:.5rem;color:rgba(0,255,65,.3);
+  letter-spacing:3px;text-transform:uppercase;
+  display:flex;gap:1.5rem;
+}
+.status-strip .ok{color:var(--m);}
+.status-strip .enc{color:var(--c);}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+/* mobile */
+@media(max-width:480px){
+  :root{--card-w:340px;--card-h:210px;}
+  .card-name{font-size:.78rem;}
+  .back-link{font-size:.55rem;}
+}
+</style>
+</head>
+<body>
+
+<div id="cur"></div>
+<div id="cur2"></div>
+<canvas id="bg-canvas"></canvas>
+
+<div class="scene">
+
+  <!-- card -->
+  <div class="card-scene" id="cardScene">
+    <div class="card-glow"></div>
+    <div class="card-inner" id="cardInner">
+
+      <!-- ── FRONT ── -->
+      <div class="card-face card-front">
+        <div class="grid-lines"></div>
+        <div class="scan-line"></div>
+        <div class="corner tl"></div><div class="corner tr"></div>
+        <div class="corner bl"></div><div class="corner br"></div>
+
+        <div class="front-content">
+          <!-- top -->
+          <div class="top-row">
+            <div class="holo-chip">
+              <div></div><div></div><div></div>
+              <div></div><div></div><div></div>
+              <div></div><div></div><div></div>
+              <div></div><div></div><div></div>
+            </div>
+            <div class="id-code">
+              ID/<span>CSP-2026</span><br>
+              NET/<span>LOCALPULSE</span><br>
+              SYS/<span>SOVEREIGN</span>
+            </div>
+          </div>
+
+          <!-- middle -->
+          <div class="avatar-zone">
+            <div class="avatar-hex">
+              <svg class="hex-ring-svg" viewBox="0 0 62 62" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <polygon points="31,2 58,16 58,46 31,60 4,46 4,16"
+                  stroke="url(#hexGrad)" stroke-width="1" stroke-dasharray="4 3" fill="none"/>
+                <defs>
+                  <linearGradient id="hexGrad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#00ff41"/>
+                    <stop offset="50%" stop-color="#00e5ff"/>
+                    <stop offset="100%" stop-color="#00ff41"/>
+                  </linearGradient>
+                </defs>
+              </svg>
+              <img src="https://github.com/Ciprian-LocalPulse.png" alt="CSP">
+            </div>
+            <div class="name-zone">
+              <div class="card-name">
+                <div class="glitch-layer" data-t="CIPRIAN">CIPRIAN</div><br>
+                <div class="glitch-layer" data-t="STEFAN PLESCA">STEFAN PLESCA</div>
+              </div>
+              <div class="card-title">Sovereign AI Architect · Zero-Trust Systems</div>
+            </div>
+          </div>
+
+          <!-- bottom -->
+          <div class="bottom-row">
+            <div>
+              <div class="badges-stack">
+                <span class="micro-badge mb-g">Vanilla JS Purist</span>
+                <span class="micro-badge mb-c">Zero-Trust</span>
+                <span class="micro-badge mb-gold">Sovereign AI</span>
+              </div>
+              <div class="email-row" style="margin-top:.5rem">
+                <div class="dot"></div>
+                contact@localpulse.pro
+              </div>
+            </div>
+            <div class="qr-zone">
+              <canvas id="qr-canvas" width="56" height="56"></canvas>
+              <div class="qr-label">SCAN · ACCESS</div>
+            </div>
+          </div>
+        </div>
+        <div class="flip-hint">[ TAP TO FLIP ]</div>
+      </div>
+
+      <!-- ── BACK ── -->
+      <div class="card-face card-back">
+        <div class="grid-lines"></div>
+        <div class="scan-line"></div>
+        <div class="corner tl"></div><div class="corner tr"></div>
+        <div class="corner bl"></div><div class="corner br"></div>
+
+        <div class="back-content">
+          <div class="back-title">// access_nodes · localpulse.pro</div>
+
+          <a href="https://www.producthunt.com/products/100-vanilla-architecture?utm_source=other&utm_medium=social" target="_blank" class="back-link">
+            <span class="bl-icon">🚀</span>
+            <span class="bl-text">Sentinel Prime · Product Hunt</span>
+            <span class="bl-arr">→</span>
+          </a>
+          <a href="https://ciprian-localpulse.github.io/my-sponsorship-page/" target="_blank" class="back-link">
+            <span class="bl-icon">🛡️</span>
+            <span class="bl-text">Sponsor Sovereign AI Research</span>
+            <span class="bl-arr">→</span>
+          </a>
+          <a href="https://dev.to/ciprianlocalpulse" target="_blank" class="back-link c-link">
+            <span class="bl-icon">📝</span>
+            <span class="bl-text">Architecture of Autonomy · dev.to</span>
+            <span class="bl-arr">→</span>
+          </a>
+          <a href="https://github.com/Ciprian-LocalPulse" target="_blank" class="back-link">
+            <span class="bl-icon">💻</span>
+            <span class="bl-text">GitHub Repositories</span>
+            <span class="bl-arr">→</span>
+          </a>
+          <a href="https://www.linkedin.com/in/stefan-ciprian-3885b6402/" target="_blank" class="back-link c-link">
+            <span class="bl-icon">💼</span>
+            <span class="bl-text">LinkedIn · Connect</span>
+            <span class="bl-arr">→</span>
+          </a>
+          <a href="https://cal.com/ciprian-stefan-plesca" target="_blank" class="back-link">
+            <span class="bl-icon">📅</span>
+            <span class="bl-text">Book Architecture Consultation</span>
+            <span class="bl-arr">→</span>
+          </a>
+          <a href="https://ciprianstefanplesca.gumroad.com/" target="_blank" class="back-link c-link">
+            <span class="bl-icon">🛠️</span>
+            <span class="bl-text">Premium Enterprise UI Kits · Gumroad</span>
+            <span class="bl-arr">→</span>
+          </a>
+        </div>
+        <div class="flip-hint">[ TAP TO FLIP ]</div>
+      </div>
+
+    </div><!-- /card-inner -->
+  </div><!-- /card-scene -->
+
+  <div class="beam"></div>
+  <div class="beam-base"></div>
+
+  <div class="bottom-ui">
+    <button class="flip-btn" id="flipBtn">
+      <div class="flip-dot"></div>
+      <span id="flipLabel">FLIP CARD · VIEW LINKS</span>
+    </button>
+    <div class="status-strip">
+      <span class="ok">● ACTIVE</span>
+      <span>© 2026 LocalPulse.pro</span>
+      <span class="enc">◈ SOVEREIGN</span>
+    </div>
+  </div>
+
+</div><!-- /scene -->
+
+<script>
+// ── CURSOR ──
+const cur=document.getElementById('cur'),cur2=document.getElementById('cur2');
+let mx=-200,my=-200;
+document.addEventListener('mousemove',e=>{
+  mx=e.clientX;my=e.clientY;
+  cur.style.left=mx+'px';cur.style.top=my+'px';
+  setTimeout(()=>{cur2.style.left=mx+'px';cur2.style.top=my+'px';},90);
+});
+document.querySelectorAll('a,button').forEach(el=>{
+  el.addEventListener('mouseenter',()=>cur.classList.add('big'));
+  el.addEventListener('mouseleave',()=>cur.classList.remove('big'));
+});
+
+// ── MATRIX RAIN ──
+(function(){
+  const c=document.getElementById('bg-canvas'),ctx=c.getContext('2d');
+  let W,H,cols,drops;
+  const chars='アイウエオカキクケコサシスセソタチツテトナニヌネノ0123456789ABCDEF<>{}[]|\\/#@';
+  function init(){
+    W=c.width=window.innerWidth;H=c.height=window.innerHeight;
+    const fs=13;cols=Math.floor(W/fs);
+    drops=Array.from({length:cols},()=>Math.random()*-H/fs);
+  }
+  function draw(){
+    ctx.fillStyle='rgba(0,5,2,0.06)';ctx.fillRect(0,0,W,H);
+    const fs=13;
+    for(let i=0;i<cols;i++){
+      const ch=chars[Math.floor(Math.random()*chars.length)];
+      const bright=Math.random()>.97;
+      ctx.fillStyle=bright?'#fff':(Math.random()>.85?'#00e5ff':'#00ff41');
+      ctx.font=(bright?'bold ':'')+fs+'px Share Tech Mono,monospace';
+      ctx.globalAlpha=bright?1:.35+Math.random()*.45;
+      ctx.fillText(ch,i*fs,drops[i]*fs);
+      ctx.globalAlpha=1;
+      if(drops[i]*fs>H&&Math.random()>.975)drops[i]=0;
+      drops[i]+=bright?.7:.45;
+    }
+  }
+  init();window.addEventListener('resize',init);
+  setInterval(draw,36);
+})();
+
+// ── QR CODE (pixel art simulation) ──
+(function(){
+  const c=document.getElementById('qr-canvas');
+  const ctx=c.getContext('2d');
+  const S=56,cell=4,n=Math.floor(S/cell);
+  // deterministic pattern seeded from name
+  function hash(s){let h=0;for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return h;}
+  const seed=hash('CiprianStefanPlesca2026');
+  function rand(i){return ((seed^(i*2654435761))>>>0)/4294967295;}
+  ctx.fillStyle='#000d04';ctx.fillRect(0,0,S,S);
+  // finder squares
+  function finder(ox,oy){
+    ctx.fillStyle='#00ff41';ctx.fillRect(ox*cell,oy*cell,7*cell,7*cell);
+    ctx.fillStyle='#000d04';ctx.fillRect((ox+1)*cell,(oy+1)*cell,5*cell,5*cell);
+    ctx.fillStyle='#00ff41';ctx.fillRect((ox+2)*cell,(oy+2)*cell,3*cell,3*cell);
+  }
+  finder(0,0);finder(n-7,0);finder(0,n-7);
+  // data modules
+  for(let r=0;r<n;r++)for(let cl=0;cl<n;cl++){
+    const inFinder=(r<8&&cl<8)||(r<8&&cl>=n-8)||(r>=n-8&&cl<8);
+    if(!inFinder){
+      const v=rand(r*n+cl);
+      ctx.fillStyle=v>.5?'#00ff41':'#000d04';
+      ctx.fillRect(cl*cell,r*cell,cell-1,cell-1);
+    }
+  }
+  // cyan accent dots
+  ctx.fillStyle='rgba(0,229,255,.6)';
+  for(let i=0;i<8;i++){
+    const x=Math.floor(rand(i*77+3)*n)*cell;
+    const y=Math.floor(rand(i*77+7)*n)*cell;
+    ctx.fillRect(x,y,cell-1,cell-1);
+  }
+})();
+
+// ── 3D TILT ──
+const scene=document.getElementById('cardScene');
+const front=document.querySelector('.card-front');
+const back=document.querySelector('.card-back');
+const inner=document.getElementById('cardInner');
+let isFlipped=false;
+
+scene.addEventListener('mousemove',e=>{
+  const r=scene.getBoundingClientRect();
+  const x=(e.clientX-r.left)/r.width-.5;
+  const y=(e.clientY-r.top)/r.height-.5;
+  const rotX=-y*18,rotY=x*18;
+  inner.style.transform=isFlipped
+    ?`rotateY(${180+rotY}deg) rotateX(${rotX}deg)`
+    :`rotateY(${rotY}deg) rotateX(${rotX}deg)`;
+
+  // holographic foil
+  const deg=(Math.atan2(y,x)*180/Math.PI+360)%360;
+  document.querySelectorAll('.card-face').forEach(f=>{
+    f.style.setProperty('--mx',((x+.5)*100)+'%');
+    f.style.setProperty('--my',((y+.5)*100)+'%');
+    f.style.setProperty('--hue',deg+'deg');
+  });
+});
+
+scene.addEventListener('mouseleave',()=>{
+  inner.style.transition='transform .6s cubic-bezier(.4,0,.2,1)';
+  inner.style.transform=isFlipped?'rotateY(180deg)':'rotateY(0deg)';
+  setTimeout(()=>inner.style.transition='',600);
+});
+
+// ── FLIP ──
+function doFlip(){
+  isFlipped=!isFlipped;
+  inner.classList.toggle('flipped',isFlipped);
+  document.getElementById('flipLabel').textContent=
+    isFlipped?'FLIP CARD · BACK TO ID':'FLIP CARD · VIEW LINKS';
+}
+document.getElementById('flipBtn').addEventListener('click',doFlip);
+scene.addEventListener('click',doFlip);
+
+// ── RANDOM GLITCH FLASH ──
+setInterval(()=>{
+  const el=document.querySelector('.card-name');
+  if(!el)return;
+  el.style.textShadow='2px 0 #ff003c, -2px 0 #00e5ff, 0 0 12px rgba(0,255,65,.5)';
+  setTimeout(()=>el.style.textShadow='',80);
+  setTimeout(()=>{
+    el.style.textShadow='0 0 12px rgba(0,255,65,.5)';
+    setTimeout(()=>el.style.textShadow='',60);
+  },160);
+},3500);
+</script>
+</body>
+</html>
