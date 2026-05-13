@@ -1,0 +1,17 @@
+# Table of contents
+
+* [🔒 HOLOCARD UI v1.0.0 — SOVEREIGN ARCHITECT](README.md)
+* [Changelog](CHANGELOG.md)
+* [Code of Conduct](CODE_OF_CONDUCT.md)
+* [Contributing Policy](CONTRIBUTING.md)
+* [HoloCard UI License Notice](LICENSE.md)
+* [Public Edition Notice](PUBLIC_EDITION_NOTICE.md)
+* [Security Policy](SECURITY.md)
+* [Support](SUPPORT.md)
+* [HoloCard UI](assets/README.md)
+  * [Changelog](assets/CHANGELOG.md)
+  * [Contributing](assets/CONTRIBUTING.md)
+  * [Public Rights and License Notice](assets/LICENSE.md)
+  * [Public Edition Notice](assets/PUBLIC_EDITION_NOTICE.md)
+  * [Security Policy](assets/SECURITY.md)
+  * [Support](assets/SUPPORT.md)
